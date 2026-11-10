@@ -18,11 +18,3 @@ register_fprime_deployment(
     DEPENDS
         ${FPRIME_CURRENT_MODULE}_Top
 )
-
-# The conventional C++ deployment executable links component libraries containing pybind11
-# code, so it must resolve the Python C API at link time. The fprime_py extension module
-# does not need this: it receives these symbols from the hosting interpreter.
-# Guarded: pybind11 is not located during fprime sub-builds
-if (TARGET pybind11::embed)
-    target_link_libraries("${FPRIME_CURRENT_MODULE}" PRIVATE pybind11::embed)
-endif()

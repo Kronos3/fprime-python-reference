@@ -35,24 +35,38 @@ fprime-util generate
 fprime-util build
 ```
 
-> [!CAUTION]
-> The build for `fprime-python` projects will be much slower as it is autocoding more items, as well as running complete model exporting with `fpp-to-json`.
+> [!NOTE]
+> The build for `fprime-python` projects is slower than a C++ build as it also autocodes and compiles the Python bindings.
+
+The build installs the `fprime_py` extension module and every Python file of the deployment to `build-artifacts/python`. Python files are reinstalled by every `fprime-util build`.
 
 ## Running
 
-To run the project, first run the GDS in the root of the project:
+The flight software runs inside a Python interpreter, so it is started separately from the GDS. The reference's communication component, `PythonTcpCom`, listens for a TCP connection; the GDS must therefore connect as a client.
+
+First, run the GDS in the root of the project:
 
 ```bash
 . fprime-venv/bin/activate
-fprime-gds
+fprime-gds --ip-client
 ```
 
 > [!NOTE]
-> This automatically starts the GDS without running the executable.
+> `fprime-gds.yml` sets `--no-app`, which starts the GDS without running an executable.
 
-Next, run Python with the bindings installed:
+Next, in a second terminal, run the flight software with the same Python that built it:
 
 ```bash
+. fprime-venv/bin/activate
 python3 build-artifacts/python/fsw_main.py
 ```
 
+`fprime-python-runner` does the same from any directory of the project. `--hostname` and `--port` set the address `PythonTcpCom` listens on (default `127.0.0.1:50000`); give the GDS the matching `--ip-address` and `--ip-port`.
+
+## Testing
+
+With the GDS and the flight software running, run the integration tests from the root of the project:
+
+```bash
+pytest test/int --dictionary build-artifacts/*/FprimePythonReference_ReferenceDeployment/dict/ReferenceDeploymentTopologyDictionary.json
+```
